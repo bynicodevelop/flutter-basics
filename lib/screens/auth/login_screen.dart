@@ -7,6 +7,7 @@ import 'package:kdofavoris/forms/types/auth/form_auth_bloc.dart';
 import 'package:kdofavoris/screens/auth/register_screen.dart';
 import 'package:kdofavoris/screens/home_screen.dart';
 import 'package:kdofavoris/services/authentication/authentication_bloc.dart';
+import 'package:kdofavoris/widgets/device_detector_builder.dart';
 
 class LoginScreen extends StatefulWidget {
   static const String ROUTE = "/login";
@@ -38,81 +39,98 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
+  Widget get _view => Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: EmailInput(
+              focusNode: _emailFocusNode,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: PasswordInput(
+              focusNode: _passwordFocusNode,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: BlocListener<AuthenticationBloc, AuthenticationState>(
+              listener: (context, state) {
+                if (state is AuthenticationErrorState) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content:
+                          const Text('Vos identifiants ne sont pas corrects.'),
+                      duration: const Duration(seconds: 4),
+                    ),
+                  );
+                } else if (state is AuthenticatedState) {
+                  context
+                      .read<AuthenticationBloc>()
+                      .add(AuthenticationInializeEvent());
+
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    HomeScreen.ROUTE,
+                    (route) => false,
+                  );
+                }
+              },
+              child: BlocBuilder<FormAuthBloc, FormAuthState>(
+                buildWhen: (previous, current) =>
+                    previous.status != current.status,
+                builder: (context, state) => SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  height: 50.0,
+                  child: ElevatedButton(
+                    child: Text("Me connecter".toUpperCase()),
+                    onPressed: () {
+                      if (state.status.isValidated)
+                        context.read<AuthenticationBloc>().add(
+                              AuthenticationConnectionEvent(
+                                email: state.email.value,
+                                password: state.password.value,
+                              ),
+                            );
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: InkWell(
+              onTap: () => Navigator.pushNamed(context, RegisterScreen.ROUTE),
+              child: Text("M'enregistrer"),
+            ),
+          ),
+        ],
+      );
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Login"),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: EmailInput(
-                focusNode: _emailFocusNode,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: PasswordInput(
-                focusNode: _passwordFocusNode,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: BlocListener<AuthenticationBloc, AuthenticationState>(
-                listener: (context, state) {
-                  if (state is AuthenticationErrorState) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text(
-                            'Vos identifiants ne sont pas corrects.'),
-                        duration: const Duration(seconds: 4),
-                      ),
-                    );
-                  } else if (state is AuthenticatedState) {
-                    context
-                        .read<AuthenticationBloc>()
-                        .add(AuthenticationInializeEvent());
-
-                    Navigator.pushNamedAndRemoveUntil(
-                      context,
-                      HomeScreen.ROUTE,
-                      (route) => false,
-                    );
-                  }
-                },
-                child: BlocBuilder<FormAuthBloc, FormAuthState>(
-                  buildWhen: (previous, current) =>
-                      previous.status != current.status,
-                  builder: (context, state) => SizedBox(
-                    width: MediaQuery.of(context).size.width,
-                    height: 50.0,
-                    child: ElevatedButton(
-                      child: Text("Me connecter".toUpperCase()),
-                      onPressed: () {
-                        if (state.status.isValidated)
-                          context.read<AuthenticationBloc>().add(
-                                AuthenticationConnectionEvent(
-                                  email: state.email.value,
-                                  password: state.password.value,
-                                ),
-                              );
-                      },
-                    ),
+      body: Center(
+        child: SingleChildScrollView(
+          child: DeviceDetectorBuilder(
+            builder: (BuildContext context, DeviceDetectorType device) {
+              if (device == DeviceDetectorType.phone) {
+                return Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: (MediaQuery.of(context).size.width - 480) / 2,
                   ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: InkWell(
-                onTap: () => Navigator.pushNamed(context, RegisterScreen.ROUTE),
-                child: Text("M'enregistrer"),
-              ),
-            ),
-          ],
+                  child: _view,
+                );
+              }
+
+              return _view;
+            },
+          ),
         ),
       ),
     );

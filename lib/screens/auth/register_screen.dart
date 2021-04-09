@@ -7,6 +7,7 @@ import 'package:kdofavoris/forms/types/auth/form_auth_bloc.dart';
 import 'package:kdofavoris/screens/auth/login_screen.dart';
 import 'package:kdofavoris/screens/home_screen.dart';
 import 'package:kdofavoris/services/authentication/authentication_bloc.dart';
+import 'package:kdofavoris/widgets/device_detector_builder.dart';
 
 class RegisterScreen extends StatefulWidget {
   static const String ROUTE = "/register";
@@ -38,83 +39,100 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: EmailInput(
-                focusNode: _emailFocusNode,
-              ),
+  Widget get _view => Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: EmailInput(
+              focusNode: _emailFocusNode,
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: PasswordInput(
-                focusNode: _passwordFocusNode,
-              ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: PasswordInput(
+              focusNode: _passwordFocusNode,
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: BlocListener<AuthenticationBloc, AuthenticationState>(
-                listener: (context, state) {
-                  if (state is AuthenticationErrorState) {
-                    if (state.authenticationErrorType ==
-                        AuthenticationErrorType.emailAlreadyExists) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text(
-                              'Vous ne pouvez créer de compte avec cet email'),
-                          duration: const Duration(seconds: 4),
-                          action: SnackBarAction(
-                            label: "Me connecter".toUpperCase(),
-                            onPressed: () =>
-                                Navigator.pushNamed(context, LoginScreen.ROUTE),
-                          ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: BlocListener<AuthenticationBloc, AuthenticationState>(
+              listener: (context, state) {
+                if (state is AuthenticationErrorState) {
+                  if (state.authenticationErrorType ==
+                      AuthenticationErrorType.emailAlreadyExists) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text(
+                            'Vous ne pouvez créer de compte avec cet email'),
+                        duration: const Duration(seconds: 4),
+                        action: SnackBarAction(
+                          label: "Me connecter".toUpperCase(),
+                          onPressed: () =>
+                              Navigator.pushNamed(context, LoginScreen.ROUTE),
                         ),
-                      );
-                    }
-                  } else if (state is AuthenticatedState) {
-                    Navigator.pushNamedAndRemoveUntil(
-                      context,
-                      HomeScreen.ROUTE,
-                      (route) => false,
+                      ),
                     );
                   }
-                },
-                child: BlocBuilder<FormAuthBloc, FormAuthState>(
-                  buildWhen: (previous, current) =>
-                      previous.status != current.status,
-                  builder: (context, state) => SizedBox(
-                    width: MediaQuery.of(context).size.width,
-                    height: 50.0,
-                    child: ElevatedButton(
-                      child: Text("M'enregistrer".toUpperCase()),
-                      onPressed: () {
-                        if (state.status.isValidated)
-                          context.read<AuthenticationBloc>().add(
-                                AuthenticationRegisterEvent(
-                                  email: state.email.value,
-                                  password: state.password.value,
-                                ),
-                              );
-                      },
-                    ),
+                } else if (state is AuthenticatedState) {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    HomeScreen.ROUTE,
+                    (route) => false,
+                  );
+                }
+              },
+              child: BlocBuilder<FormAuthBloc, FormAuthState>(
+                buildWhen: (previous, current) =>
+                    previous.status != current.status,
+                builder: (context, state) => SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  height: 50.0,
+                  child: ElevatedButton(
+                    child: Text("M'enregistrer".toUpperCase()),
+                    onPressed: () {
+                      if (state.status.isValidated)
+                        context.read<AuthenticationBloc>().add(
+                              AuthenticationRegisterEvent(
+                                email: state.email.value,
+                                password: state.password.value,
+                              ),
+                            );
+                    },
                   ),
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: InkWell(
-                onTap: () => Navigator.pushNamed(context, LoginScreen.ROUTE),
-                child: Text("Me connecter"),
-              ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: InkWell(
+              onTap: () => Navigator.pushNamed(context, LoginScreen.ROUTE),
+              child: Text("Me connecter"),
             ),
-          ],
+          ),
+        ],
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(),
+      body: Center(
+        child: SingleChildScrollView(
+          child: DeviceDetectorBuilder(
+            builder: (BuildContext context, DeviceDetectorType device) {
+              if (device == DeviceDetectorType.phone) {
+                return Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: (MediaQuery.of(context).size.width - 480) / 2,
+                  ),
+                  child: _view,
+                );
+              }
+
+              return _view;
+            },
+          ),
         ),
       ),
     );
