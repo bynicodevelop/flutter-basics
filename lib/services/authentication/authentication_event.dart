@@ -29,4 +29,6 @@ class AuthenticationConnectionEvent extends AuthenticationEvent {
   });
 }
 
+class AuthenticationAnonymousConnectionEvent extends AuthenticationEvent {}
+
 class AuthenticationLogoutEvent extends AuthenticationEvent {}

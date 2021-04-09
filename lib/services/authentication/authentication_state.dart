@@ -25,6 +25,8 @@ class AuthenticationErrorState extends AuthenticationState {
   AuthenticationErrorState(this.authenticationErrorType);
 }
 
+class AuthenticatedAnonymouslyState extends AuthenticationState {}
+
 class AuthenticatedState extends AuthenticationState {}
 
 class UnauthenticatedState extends AuthenticationState {}

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kdofavoris/exceptions/bad_credentials_exception.dart';
 import 'package:kdofavoris/exceptions/email_altrady_exists_exception.dart';
 import 'package:kdofavoris/exceptions/password_too_short_exception.dart';
+import 'package:kdofavoris/models/user_model.dart';
 import 'package:kdofavoris/services/authentication/authentication_bloc.dart';
 import 'package:mockito/mockito.dart';
 
@@ -126,6 +127,25 @@ main() {
     );
   });
 
+  group("Anonymous Authentication", () {
+    blocTest<AuthenticationBloc, AuthenticationState>(
+        "Doit permettre une connection automatique de l'utilisateur",
+        build: () {
+          when(authRepositoryMock.anonymousConnection())
+              .thenAnswer((_) => Future.value());
+
+          return AuthenticationBloc(authRepositoryMock);
+        },
+        act: (bloc) => bloc.add(AuthenticationAnonymousConnectionEvent()),
+        expect: () => [
+              AuthenticationSubmittingState(),
+              AuthenticatedAnonymouslyState(),
+            ],
+        verify: (bloc) {
+          verify(authRepositoryMock.anonymousConnection());
+        });
+  });
+
   group("Logout", () {
     blocTest<AuthenticationBloc, AuthenticationState>(
       "Doit permettre la déconnexion d'un utilisateur",
@@ -145,11 +165,43 @@ main() {
         when(authRepositoryMock.isAuthenticated)
             .thenAnswer((_) => Future.value(true));
 
+        when(authRepositoryMock.user).thenAnswer(
+          (_) => Future.value(
+            UserModel(
+              uid: "123456789",
+              isAnonymous: false,
+            ),
+          ),
+        );
+
         return AuthenticationBloc(authRepositoryMock);
       },
       act: (bloc) => bloc.add(AuthenticationInializeEvent()),
       expect: () => [
         AuthenticatedState(),
+      ],
+    );
+
+    blocTest<AuthenticationBloc, AuthenticationState>(
+      "Doit vérifier que l'utilisateur est  connecté (anonyme)",
+      build: () {
+        when(authRepositoryMock.isAuthenticated)
+            .thenAnswer((_) => Future.value(true));
+
+        when(authRepositoryMock.user).thenAnswer(
+          (_) => Future.value(
+            UserModel(
+              uid: "123456789",
+              isAnonymous: true,
+            ),
+          ),
+        );
+
+        return AuthenticationBloc(authRepositoryMock);
+      },
+      act: (bloc) => bloc.add(AuthenticationInializeEvent()),
+      expect: () => [
+        AuthenticatedAnonymouslyState(),
       ],
     );
 

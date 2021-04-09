@@ -5,6 +5,7 @@ import 'package:equatable/equatable.dart';
 import 'package:kdofavoris/exceptions/bad_credentials_exception.dart';
 import 'package:kdofavoris/exceptions/email_altrady_exists_exception.dart';
 import 'package:kdofavoris/exceptions/password_too_short_exception.dart';
+import 'package:kdofavoris/models/user_model.dart';
 import 'package:kdofavoris/repositories/auth_repository.dart';
 
 part 'authentication_event.dart';
@@ -22,9 +23,16 @@ class AuthenticationBloc
   ) async* {
     if (event is AuthenticationInializeEvent) {
       bool isAuthenticated = await _authRepository.isAuthenticated;
-      print(isAuthenticated);
+
       if (isAuthenticated) {
-        yield AuthenticatedState();
+        final UserModel userModel = (await _authRepository.user)!;
+
+        if (userModel.isAnonymous) {
+          yield AuthenticatedAnonymouslyState();
+        } else {
+          yield AuthenticatedState();
+        }
+
         return;
       }
 
@@ -64,6 +72,12 @@ class AuthenticationBloc
       } on BadCredentialsException {
         yield AuthenticationErrorState(AuthenticationErrorType.badCredentials);
       }
+    } else if (event is AuthenticationAnonymousConnectionEvent) {
+      yield AuthenticationSubmittingState();
+
+      await _authRepository.anonymousConnection();
+
+      yield AuthenticatedAnonymouslyState();
     } else if (event is AuthenticationLogoutEvent) {
       await _authRepository.logout();
 
