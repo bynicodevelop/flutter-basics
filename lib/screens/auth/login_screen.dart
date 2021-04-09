@@ -4,6 +4,7 @@ import 'package:formz/formz.dart';
 import 'package:kdofavoris/forms/inputs/email_input.dart';
 import 'package:kdofavoris/forms/inputs/password_input.dart';
 import 'package:kdofavoris/forms/types/auth/form_auth_bloc.dart';
+import 'package:kdofavoris/screens/auth/register_screen.dart';
 import 'package:kdofavoris/screens/home_screen.dart';
 import 'package:kdofavoris/services/authentication/authentication_bloc.dart';
 
@@ -103,7 +104,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-            )
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: InkWell(
+                onTap: () => Navigator.pushNamed(context, RegisterScreen.ROUTE),
+                child: Text("M'enregistrer"),
+              ),
+            ),
           ],
         ),
       ),

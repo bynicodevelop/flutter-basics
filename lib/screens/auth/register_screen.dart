@@ -106,7 +106,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
               ),
-            )
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: InkWell(
+                onTap: () => Navigator.pushNamed(context, LoginScreen.ROUTE),
+                child: Text("Me connecter"),
+              ),
+            ),
           ],
         ),
       ),
