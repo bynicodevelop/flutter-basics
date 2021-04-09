@@ -119,7 +119,7 @@ class _LoginScreenState extends State<LoginScreen> {
         child: SingleChildScrollView(
           child: DeviceDetectorBuilder(
             builder: (BuildContext context, DeviceDetectorType device) {
-              if (device == DeviceDetectorType.phone) {
+              if (device == DeviceDetectorType.desktop) {
                 return Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: (MediaQuery.of(context).size.width - 480) / 2,
